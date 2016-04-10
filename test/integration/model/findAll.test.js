@@ -1340,6 +1340,17 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         expect(info.rows[1].dataValues).to.not.have.property('username');
       });
     });
+
+    it('avoids throwing a rejection when rejectOnEmpty is set to true locally', function () {
+      return this.User.findAndCountAll({
+        where: ['id != ' + this.users[0].id],
+        rejectOnEmpty: true
+      }).then(function(info) {
+        expect(info.count).to.equal(2);
+        expect(Array.isArray(info.rows)).to.be.ok;
+        expect(info.rows.length).to.equal(2);
+      });
+    });
   });
 
   describe('all', function() {
@@ -1437,6 +1448,24 @@ describe(Support.getTestDialectTeaser('Model'), function() {
       return Model.sync({ force: true })
         .then(function() {
           return expect(Model.findAll({
+            where: {
+              username: 'some-username-that-is-not-used-anywhere-for-sure-this-time'
+            }
+          })).to.eventually.be.rejectedWith(Sequelize.ConnectionError);
+        });
+    });
+
+    it('should not throw a rejection on findOrCreate', function() {
+
+      var Model = current.define('Test', {
+        username: Sequelize.STRING(100)
+      },{
+        rejectOnEmpty: true
+      });
+
+      return Model.sync({ force: true })
+        .then(function() {
+          return expect(Model.findOrCreate({
             where: {
               username: 'some-username-that-is-not-used-anywhere-for-sure-this-time'
             }

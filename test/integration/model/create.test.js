@@ -464,6 +464,32 @@ describe(Support.getTestDialectTeaser('Model'), function() {
         );
       });
     });
+
+    it('avoids throwing a rejection when rejectOnEmpty is set to true locally', function () {
+      return this.User.findOrCreate({
+        where: { username: 'julie' },
+        rejectOnEmpty: true
+      }).then(function(user) {
+          expect(user.username).to.equal('julie');
+        });
+    });
+
+    it('avoids throwing a rejection when rejectOnEmpty is set to true in the model', function () {
+      var Model = current.define('Test', {
+        username: Sequelize.STRING(100)
+      },{
+        rejectOnEmpty: true
+      });
+
+      return Model.sync({ force: true })
+        .then(function() {
+          return Model.findOrCreate({
+            where: { username: 'julie' }
+          }).then(function(user) {
+            expect(user.username).to.equal('julie');
+          });
+        });
+    });
   });
 
   describe('findCreateFind', function () {
